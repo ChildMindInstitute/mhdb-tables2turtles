@@ -12,7 +12,7 @@ Copyright 2020, Child Mind Institute (http://childmind.org), Apache v2.0 License
 """
 import os
 import pandas as pd
-import urllib
+import urllib.request as urllibrequest #import urllib
 
 
 def download_google_sheet(filepath, docid):
@@ -31,7 +31,7 @@ def download_google_sheet(filepath, docid):
     """
     if not os.path.exists(os.path.abspath(os.path.dirname(filepath))):
         os.makedirs(os.path.abspath(os.path.dirname(filepath)))
-    urllib.request.urlretrieve("{1}{0}{2}".format(
+    urllibrequest.urlretrieve("{1}{0}{2}".format(
         docid,
         'https://docs.google.com/spreadsheets/d/',
         '/export?format=xlsx'

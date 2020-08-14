@@ -310,8 +310,8 @@ def ingest_disorders(disorders_xls, statements={}):
     disorders_classes = disorders_xls.parse("Classes")
     disorders_properties = disorders_xls.parse("Properties")
     disorders = disorders_xls.parse("disorders")
-    sign_or_symptoms = disorders_xls.parse("sign_or_symptoms")
-    examples_sign_or_symptoms = disorders_xls.parse("examples_sign_or_symptoms")
+    signs_symptoms = disorders_xls.parse("signs_symptoms")
+    examples_signs_symptoms = disorders_xls.parse("examples_signs_symptoms")
     severities = disorders_xls.parse("severities")
     diagnostic_specifiers = disorders_xls.parse("diagnostic_specifiers")
     diagnostic_criteria = disorders_xls.parse("diagnostic_criteria")
@@ -325,8 +325,8 @@ def ingest_disorders(disorders_xls, statements={}):
     disorders_classes = disorders_classes.fillna(emptyValue)
     disorders_properties = disorders_properties.fillna(emptyValue)
     disorders = disorders.fillna(emptyValue)
-    sign_or_symptoms = sign_or_symptoms.fillna(emptyValue)
-    examples_sign_or_symptoms = examples_sign_or_symptoms.fillna(emptyValue)
+    signs_symptoms = signs_symptoms.fillna(emptyValue)
+    examples_signs_symptoms = examples_signs_symptoms.fillna(emptyValue)
     severities = severities.fillna(emptyValue)
     diagnostic_specifiers = diagnostic_specifiers.fillna(emptyValue)
     diagnostic_criteria = diagnostic_criteria.fillna(emptyValue)
@@ -378,6 +378,7 @@ def ingest_disorders(disorders_xls, statements={}):
         if row[1]["propertyDomain"] not in exclude_list:
             predicates_list.append(("rdfs:domain",
                                     check_iri(row[1]["propertyDomain"])))
+        #if predicates_list == property_label:        
         if row[1]["propertyRange"] not in exclude_list:
             predicates_list.append(("rdfs:range",
                                     check_iri(row[1]["propertyRange"])))
@@ -402,15 +403,17 @@ def ingest_disorders(disorders_xls, statements={}):
                 exclude_list
             )
 
-    # sign_or_symptoms worksheet
-    for row in sign_or_symptoms.iterrows():
-        sign_or_symptom = row[1]["sign_or_symptom"].strip()
-        if sign_or_symptom not in exclude_list:
+    # signs_symptoms worksheet
+    for row in signs_symptoms.iterrows():
+        sign_symptom = row[1]["sign_symptom"].strip()
+        if sign_symptom not in exclude_list:
 
             # sign or symptom?
-            sign_or_symptom_number = np.int(row[1]["sign_or_symptom_number"])
-            symptom_label = language_string(sign_or_symptom)
-            symptom_iri = check_iri(sign_or_symptom, 'PascalCase')
+            """@
+            sign_symptom_number = np.int(row[1]["sign_symptom_number"])
+            """
+            symptom_label = language_string(sign_symptom)
+            symptom_iri = check_iri(sign_symptom, 'PascalCase')
 
             predicates_list = []
             predicates_list.append(("rdfs:label", symptom_label))
@@ -443,38 +446,45 @@ def ingest_disorders(disorders_xls, statements={}):
                 for index in indices_disorder:
                     disorder = disorders[disorders["index"] == index
                                         ]["disorder"].values[0]
+            """@
                     if isinstance(disorder, str):
-                        if sign_or_symptom_number == 1:
+                        if sign_symptom_number == 1:
                             predicates_list.append((":isMedicalSignOf",
                                                     check_iri(disorder, 'PascalCase')))
-                        elif sign_or_symptom_number == 2:
+                        elif sign_symptom_number == 2:
                             predicates_list.append((":isMedicalSymptomOf",
                                                     check_iri(disorder, 'PascalCase')))
                         else:
                             predicates_list.append((":isMedicalSignOrSymptomOf",
                                                     check_iri(disorder, 'PascalCase')))
 
+            """
+            """@
             # Is the sign/symptom a subclass of other another sign/symptom?
-            indices_sign_or_symptom = row[1]["indices_sign_or_symptom"]
-            if indices_sign_or_symptom not in exclude_list:
-                if isinstance(indices_sign_or_symptom, float) or \
-                        isinstance(indices_sign_or_symptom, int):
-                    indices_sign_or_symptom1 = [np.int(indices_sign_or_symptom)]
+            indices_sign_symptom = row[1]["indices_sign_symptom"]
+            if indices_sign_symptom not in exclude_list:
+                if isinstance(indices_sign_symptom, float) or \
+                        isinstance(indices_sign_symptom, int):
+                    indices_sign_symptom1 = [np.int(indices_sign_symptom)]
                 else:
-                    indices_sign_or_symptom1 = [np.int(x) for x in
-                               indices_sign_or_symptom.strip().split(',') if len(x)>0]
-                for index in indices_sign_or_symptom1:
-                    super_sign = sign_or_symptoms[sign_or_symptoms["index"] ==
-                                                  index]["sign_or_symptom"].values[0]
+                    indices_sign_symptom1 = [np.int(x) for x in
+                               indices_sign_symptom.strip().split(',') if len(x)>0]
+                for index in indices_sign_symptom1:
+                    #print(index)
+                    super_sign = signs_symptoms[signs_symptoms["index"] ==
+                                                  index]["sign_symptom"].values[0]
                     if isinstance(super_sign, str):
                         predicates_list.append(("rdfs:subClassOf",
                                                 check_iri(super_sign, 'PascalCase')))
-            if sign_or_symptom_number == 1:
+            """
+            """@
+            if sign_symptom_number == 1:
                predicates_list.append(("rdfs:subClassOf", ":MedicalSign"))
-            elif sign_or_symptom_number == 2:
+            elif sign_symptom_number == 2:
                predicates_list.append(("rdfs:subClassOf", ":MedicalSymptom"))
             else:
                predicates_list.append(("rdfs:subClassOf", ":MedicalSignOrSymptom"))
+            """
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -485,28 +495,28 @@ def ingest_disorders(disorders_xls, statements={}):
                     exclude_list
                 )
 
-    # examples_sign_or_symptoms worksheet
-    for row in examples_sign_or_symptoms.iterrows():
-        examples_sign_or_symptoms = row[1]["examples_sign_or_symptoms"].strip()
-        if examples_sign_or_symptoms not in exclude_list:
+    # examples_signs_symptoms worksheet
+    for row in examples_signs_symptoms.iterrows():
+        example_sign_symptom = row[1]["example_sign_symptom"].strip()
+        if example_sign_symptom not in exclude_list:
 
-            example_symptom_label = language_string(examples_sign_or_symptoms)
-            example_symptom_iri = check_iri(examples_sign_or_symptoms)
+            example_symptom_label = language_string(example_sign_symptom)
+            example_symptom_iri = check_iri(example_sign_symptom)
 
             predicates_list = []
             predicates_list.append(("rdfs:label", example_symptom_label))
 
-            indices_sign_or_symptom = row[1]["indices_sign_or_symptom"]
-            if indices_sign_or_symptom not in exclude_list:
-                if isinstance(indices_sign_or_symptom, float) or \
-                        isinstance(indices_sign_or_symptom, int):
-                    indices_sign_or_symptom2 = [np.int(indices_sign_or_symptom)]
+            indices_sign_symptom = row[1]["indices_sign_symptom"]
+            if indices_sign_symptom not in exclude_list:
+                if isinstance(indices_sign_symptom, float) or \
+                        isinstance(indices_sign_symptom, int):
+                    indices_sign_symptom2 = [np.int(indices_sign_symptom)]
                 else:
-                    indices_sign_or_symptom2 = [np.int(x) for x in
-                               indices_sign_or_symptom.strip().split(',') if len(x)>0]
-                for index in indices_sign_or_symptom2:
-                    objectRDF = sign_or_symptoms[sign_or_symptoms["index"] ==
-                                                 index]["sign_or_symptom"].values[0]
+                    indices_sign_symptom2 = [np.int(x) for x in
+                               indices_sign_symptom.strip().split(',') if len(x)>0]
+                for index in indices_sign_symptom2:
+                    objectRDF = signs_symptoms[signs_symptoms["index"] ==
+                                                 index]["sign_symptom"].values[0]
                     if isinstance(objectRDF, str):
                         predicates_list.append((":isExampleOf",
                                                 check_iri(objectRDF, 'PascalCase')))
@@ -577,12 +587,7 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            else:
-                predicates_list.append(("rdfs:subClassOf",
-                                        ":DiagnosticSpecifier"))
+            predicates_list.append(("rdfs:subClassOf", ":DiagnosticSpecifier"))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -613,12 +618,7 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            else:
-                predicates_list.append(("rdfs:subClassOf",
-                                        ":DiagnosticCriterion"))
+            predicates_list.append(("rdfs:subClassOf", ":DiagnosticCriterion"))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -648,12 +648,6 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            if row[1]["note"] not in exclude_list:
-                predicates_list.append((":hasNote",
-                                        language_string(row[1]["note"])))
             if row[1]["ICD9CM"] not in exclude_list:
                 ICD9 = str(row[1]["ICD9CM"])
                 predicates_list.append((":hasICD9Code", "ICD9CM:" + ICD9))
@@ -664,6 +658,12 @@ def ingest_disorders(disorders_xls, statements={}):
                 predicates_list.append((":hasICD10Code", "ICD10CM:" + ICD10))
                 disorder_label += "; ICD10CM:{0}".format(ICD10)
                 disorder_iri_label += " ICD10 {0}".format(ICD10)
+            #if row[1]["subClassOf"] not in exclude_list:
+            #    predicates_list.append(("rdfs:subClassOf",
+            #                            check_iri(row[1]["subClassOf"])))
+            if row[1]["note"] not in exclude_list:
+                predicates_list.append((":hasNote",
+                                        language_string(row[1]["note"])))
             if row[1]["index_diagnostic_specifier"] not in exclude_list:
                 diagnostic_specifier = diagnostic_specifiers[
                 diagnostic_specifiers["index"] == int(row[1]["index_diagnostic_specifier"])
@@ -868,11 +868,21 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            else:
-                predicates_list.append(("rdfs:subClassOf", ":Disorder"))
+            if row[1]["ICD9CM"] not in exclude_list:
+                ICD9 = str(row[1]["ICD9CM"])
+                predicates_list.append((":hasICD9Code", "ICD9CM:" + ICD9))
+                disorder_label += "; ICD9CM:{0}".format(ICD9)
+                disorder_iri_label += " ICD9 {0}".format(ICD9)
+            if row[1]["ICD10CM"] not in exclude_list:
+                ICD10 = row[1]["ICD10CM"]
+                predicates_list.append((":hasICD10Code", "ICD10CM:" + ICD10))
+                disorder_label += "; ICD10CM:{0}".format(ICD10)
+                disorder_iri_label += " ICD10 {0}".format(ICD10)
+            #if row[1]["subClassOf"] not in exclude_list:
+            #    predicates_list.append(("rdfs:subClassOf",
+            #                            check_iri(row[1]["subClassOf"])))
+            #else:
+            predicates_list.append(("rdfs:subClassOf", ":Disorder"))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -903,11 +913,21 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            else:
-                predicates_list.append(("rdfs:subClassOf", ":Disorder"))
+            if row[1]["ICD9CM"] not in exclude_list:
+                ICD9 = str(row[1]["ICD9CM"])
+                predicates_list.append((":hasICD9Code", "ICD9CM:" + ICD9))
+                disorder_label += "; ICD9CM:{0}".format(ICD9)
+                disorder_iri_label += " ICD9 {0}".format(ICD9)
+            if row[1]["ICD10CM"] not in exclude_list:
+                ICD10 = row[1]["ICD10CM"]
+                predicates_list.append((":hasICD10Code", "ICD10CM:" + ICD10))
+                disorder_label += "; ICD10CM:{0}".format(ICD10)
+                disorder_iri_label += " ICD10 {0}".format(ICD10)
+            #if row[1]["subClassOf"] not in exclude_list:
+            #    predicates_list.append(("rdfs:subClassOf",
+            #                            check_iri(row[1]["subClassOf"])))
+            #else:
+            predicates_list.append(("rdfs:subClassOf", ":Disorder"))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -938,11 +958,21 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            else:
-                predicates_list.append(("rdfs:subClassOf", ":Disorder"))
+            if row[1]["ICD9CM"] not in exclude_list:
+                ICD9 = str(row[1]["ICD9CM"])
+                predicates_list.append((":hasICD9Code", "ICD9CM:" + ICD9))
+                disorder_label += "; ICD9CM:{0}".format(ICD9)
+                disorder_iri_label += " ICD9 {0}".format(ICD9)
+            if row[1]["ICD10CM"] not in exclude_list:
+                ICD10 = row[1]["ICD10CM"]
+                predicates_list.append((":hasICD10Code", "ICD10CM:" + ICD10))
+                disorder_label += "; ICD10CM:{0}".format(ICD10)
+                disorder_iri_label += " ICD10 {0}".format(ICD10)
+            #if row[1]["subClassOf"] not in exclude_list:
+            #    predicates_list.append(("rdfs:subClassOf",
+            #                            check_iri(row[1]["subClassOf"])))
+            #else:
+            predicates_list.append(("rdfs:subClassOf", ":Disorder"))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -973,11 +1003,21 @@ def ingest_disorders(disorders_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-            if row[1]["subClassOf"] not in exclude_list:
-                predicates_list.append(("rdfs:subClassOf",
-                                        check_iri(row[1]["subClassOf"])))
-            else:
-                predicates_list.append(("rdfs:subClassOf", ":Disorder"))
+            if row[1]["ICD9CM"] not in exclude_list:
+                ICD9 = str(row[1]["ICD9CM"])
+                predicates_list.append((":hasICD9Code", "ICD9CM:" + ICD9))
+                disorder_label += "; ICD9CM:{0}".format(ICD9)
+                disorder_iri_label += " ICD9 {0}".format(ICD9)
+            if row[1]["ICD10CM"] not in exclude_list:
+                ICD10 = row[1]["ICD10CM"]
+                predicates_list.append((":hasICD10Code", "ICD10CM:" + ICD10))
+                disorder_label += "; ICD10CM:{0}".format(ICD10)
+                disorder_iri_label += " ICD10 {0}".format(ICD10)
+            #if row[1]["subClassOf"] not in exclude_list:
+            #    predicates_list.append(("rdfs:subClassOf",
+            #                            check_iri(row[1]["subClassOf"])))
+            #else:
+            predicates_list.append(("rdfs:subClassOf", ":Disorder"))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -1037,7 +1077,7 @@ def ingest_disorders(disorders_xls, statements={}):
     return statements
 
 
-def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
+def ingest_resources(resources_xls, sensors_xls, states_xls, statements={}):
     """
     Function to ingest resources spreadsheet
 
@@ -1047,7 +1087,7 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
 
     states_xls: pandas ExcelFile
 
-    measures_xls: pandas ExcelFile
+    sensors_xls: pandas ExcelFile
 
     statements:  dictionary
         key: string
@@ -1093,8 +1133,8 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
     languages = resources_xls.parse("languages")
     licenses = resources_xls.parse("licenses")
     # imported (non-resources) worksheets
-    #measures = measures_xls.parse("measures")
-    #sensors = measures_xls.parse("sensors")
+    #measurands = sensors_xls.parse("measurands")
+    #sensors = sensors_xls.parse("sensors")
     #states = states_xls.parse("states")
 
     # fill NANs with emptyValue
@@ -1111,7 +1151,7 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
     people = people.fillna(emptyValue)
     languages = languages.fillna(emptyValue)
     licenses = licenses.fillna(emptyValue)
-    #measures = measures.fillna(emptyValue)
+    #measurands = measurands.fillna(emptyValue)
     #sensors = sensors.fillna(emptyValue)
     #states = states_xls.parse("states")
 
@@ -1517,7 +1557,7 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
             indices_project_type = row[1]["indices_project_type"]
             indices_group = row[1]["indices_group"]
             indices_sensor = row[1]["indices_sensor"]
-            #indices_measure = row[1]["indices_measure"]
+            #indices_measurand = row[1]["indices_measurand"]
 
             # project types
             if indices_project_type not in exclude_list:
@@ -1546,7 +1586,7 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
                     if group_org_iri not in exclude_list:
                         predicates_list.append((":isMaintainedByGroup",
                                                 check_iri(group_org_iri)))
-            # # sensors and measures
+            # # sensors and measurands
             # if indices_sensor not in exclude_list:
             #     indices = [np.int(x) for x in
             #                indices_sensor.strip().split(',') if len(x)>0]
@@ -1555,12 +1595,12 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
             #         if objectRDF not in exclude_list:
             #             predicates_list.append((":hasSubSystem",
             #                                     check_iri(objectRDF, 'PascalCase')))
-            # if indices_measure not in exclude_list:
+            # if indices_measurand not in exclude_list:
             #     indices = [np.int(x) for x in
-            #                indices_measure.strip().split(',') if len(x)>0]
+            #                indices_measurand.strip().split(',') if len(x)>0]
             #     for index in indices:
-            #         objectRDF = measures[measures["index"] ==
-            #                              index]["measure"].values[0]
+            #         objectRDF = measurands[measurands["index"] ==
+            #                              index]["measurand"].values[0]
             #         if objectRDF not in exclude_list:
             #             predicates_list.append((":observes",
             #                                     check_iri(objectRDF, 'PascalCase')))
@@ -1830,7 +1870,7 @@ def ingest_resources(resources_xls, measures_xls, states_xls, statements={}):
     return statements
 
 
-def ingest_assessments(assessments_xls, resources_xls, statements={}):
+def ingest_assessments(assessments_xls, resources_xls, disorders_xls, statements={}):
     """
     Function to ingest assessments spreadsheet
 
@@ -1878,7 +1918,14 @@ def ingest_assessments(assessments_xls, resources_xls, statements={}):
     assertions_indices = assessments_xls.parse("task_assertions_indices")
     references = assessments_xls.parse("references")
     projects = resources_xls.parse("projects")
-
+    people = resources_xls.parse("people")
+    licenses = resources_xls.parse("licenses")
+    languages = resources_xls.parse("languages")
+    disorders = disorders_xls.parse("disorders")
+    disorder_categories = disorders_xls.parse("disorder_categories")
+    disorder_subcategories = disorders_xls.parse("disorder_subcategories")
+    disorder_subsubcategories = disorders_xls.parse("disorder_subsubcategories")
+ 
     # fill NANs with emptyValue
     assessments_classes = assessments_classes.fillna(emptyValue)
     assessments_properties = assessments_properties.fillna(emptyValue)
@@ -1893,6 +1940,13 @@ def ingest_assessments(assessments_xls, resources_xls, statements={}):
     assertions_indices = assertions_indices.fillna(emptyValue)
     references = references.fillna(emptyValue)
     projects = projects.fillna(emptyValue)
+    people = people.fillna(emptyValue)
+    licenses = licenses.fillna(emptyValue)
+    languages = languages.fillna(emptyValue)
+    disorders = disorders.fillna(emptyValue)
+    disorder_categories = disorder_categories.fillna(emptyValue)
+    disorder_subcategories = disorder_subcategories.fillna(emptyValue)
+    disorder_subsubcategories = disorder_subsubcategories.fillna(emptyValue)
 
     #statements = audience_statements(statements)
 
@@ -2057,59 +2111,100 @@ def ingest_assessments(assessments_xls, resources_xls, statements={}):
             # indices to other worksheets about who uses the shared
             indices_respondent = row[1]["indices_respondent"]
             indices_subject = row[1]["indices_subject"]
+            indices_disorder = row[1]["indices_disorder"]
+            indices_disorder_category = row[1]["indices_disorder_category"]
+            indices_disorder_subcategory = row[1]["indices_disorder_subcategory"]
+            index_disorder_subsubcategory = row[1]["indices_disorder_subsubcategory"]
             indices_reference = row[1]["indices_reference"]
             index_license = row[1]["index_license"]
-            indices_language = row[1]["indices_language"]
-            # if indices_respondent not in exclude_list:
-            #     if isinstance(indices_respondent, float):
-            #         indices = [np.int(indices_respondent)]
-            #     else:
-            #         indices = [np.int(x) for x in
-            #                    indices_respondent.strip().split(',') if len(x)>0]
-            #     for index in indices:
-            #         objectRDF = respondents_or_subjects[
-            #             respondents_or_subjects["index"] ==
-            #             index]["respondent_or_subject"].values[0]
-            #         if objectRDF not in exclude_list:
-            #             predicates_list.append(("schema:audienceType",
-            #                                     check_iri(objectRDF, 'PascalCase')))
-            # if indices_subject not in exclude_list:
-            #     if isinstance(indices_subject, float):
-            #         indices = [np.int(indices_subject)]
-            #     else:
-            #         indices = [np.int(x) for x in
-            #                    indices_subject.strip().split(',') if len(x)>0]
-            #     for index in indices:
-            #         objectRDF = respondents_or_subjects[
-            #             respondents_or_subjects["index"] ==
-            #             index]["respondent_or_subject"].values[0]
-            #         if objectRDF not in exclude_list:
-            #             predicates_list.append(("schema:about",
-            #                                     check_iri(objectRDF, 'PascalCase')))
-            # if indices_reference not in exclude_list:
-            #     indices = [np.int(x) for x in
-            #                indices_reference.strip().split(',') if len(x)>0]
-            #     for index in indices:
-            #         # cited reference IRI
-            #         title_cited = questionnaires[
-            #             questionnaires["index"] == index]["title"].values[0]
-            #         if title_cited not in exclude_list:
-            #             predicates_list.append((":isReferencedBy",
-            #                                     check_iri(title_cited)))
+            index_language = row[1]["index_language"]
+            indices_language = row[1]["indices_language_not_in_mhdb"]
+            if indices_respondent not in exclude_list:
+                if isinstance(indices_respondent, float):
+                    indices = [np.int(indices_respondent)]
+                else:
+                    indices = [np.int(x) for x in
+                               indices_respondent.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = people[
+                        people["index"] ==
+                        index]["person"].values[0]
+                    if objectRDF not in exclude_list:
+                        predicates_list.append(("schema:audienceType",
+                                                check_iri(objectRDF, 'PascalCase')))
+            if indices_subject not in exclude_list:
+                if isinstance(indices_subject, float):
+                    indices = [np.int(indices_subject)]
+                else:
+                    indices = [np.int(x) for x in
+                               indices_subject.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = people[
+                        people["index"] ==
+                        index]["person"].values[0]
+                    if objectRDF not in exclude_list:
+                        predicates_list.append(("schema:about",
+                                                check_iri(objectRDF, 'PascalCase')))
+            if indices_disorder not in exclude_list:
+                indices = [np.int(x) for x in
+                           indices_disorder.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = disorders[disorders["index"] ==
+                                          index]["disorder"].values[0]
+                    if objectRDF not in exclude_list:
+                        predicates_list.append(("schema:about", check_iri(objectRDF, 'PascalCase')))
+            if indices_disorder_category not in exclude_list:
+                indices = [np.int(x) for x in
+                           indices_disorder_category.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = disorder_categories[disorder_categories["index"] ==
+                                     index]["disorder_category"].values[0]
+                    if objectRDF not in exclude_list:
+                        predicates_list.append(("schema:about", check_iri(objectRDF, 'PascalCase')))
+            if indices_disorder_subcategory not in exclude_list:
+                indices = [np.int(x) for x in
+                           indices_disorder_subcategory.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = disorder_subcategories[disorder_subcategories["index"] ==
+                                     index]["disorder_subcategory"].values[0]
+                    if objectRDF not in exclude_list:
+                        predicates_list.append(("schema:about", check_iri(objectRDF, 'PascalCase')))
+            if index_disorder_subsubcategory not in exclude_list:
+                objectRDF = disorder_subsubcategories[disorder_subsubcategories["index"] ==
+                                     index_disorder_subsubcategory]["disorder_subsubcategory"].values[0]
+                if objectRDF not in exclude_list:
+                    predicates_list.append(("schema:about", check_iri(objectRDF, 'PascalCase')))
+
+            if indices_reference not in exclude_list:
+                indices = [np.int(x) for x in
+                           indices_reference.strip().split(',') if len(x)>0]
+                for index in indices:
+                    # cited reference IRI
+                    title_cited = references[
+                        references["index"] == index]["title"].values[0]
+                    if title_cited not in exclude_list:
+                        predicates_list.append((":isReferencedBy",
+                                                check_iri(title_cited)))
             if index_license not in exclude_list:
-                objectRDF = shared[licenses["index"] ==
+                objectRDF = licenses[licenses["index"] ==
                                        index_license]["license"].values[0]
                 if objectRDF not in exclude_list:
                     predicates_list.append((":hasLicense", check_iri(objectRDF, 'PascalCase')))
-            # if indices_language not in exclude_list:
-            #     indices = [np.int(x) for x in
-            #                indices_language.strip().split(',') if len(x)>0]
-            #     for index in indices:
-            #         objectRDF = languages[
-            #             languages["index"] == index]["language"].values[0]
-            #         if objectRDF not in exclude_list:
-            #             predicates_list.append((":hasLanguage",
-            #                                     check_iri(objectRDF, 'PascalCase')))
+            if index_language not in exclude_list:
+                objectRDF = languages[
+                    languages["index"] == index_language]["language"].values[0]
+                if objectRDF not in exclude_list:
+                    predicates_list.append((":hasLanguage",
+                                            check_iri(objectRDF, 'PascalCase')))
+            if indices_language not in exclude_list:
+                indices = [np.int(x) for x in
+                           indices_language.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = languages[
+                        languages["index"] == index]["language"].values[0]
+                    if objectRDF not in exclude_list:
+                        predicates_list.append((":hasLanguage",
+                                                check_iri(objectRDF, 'PascalCase')))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -2125,10 +2220,10 @@ def ingest_assessments(assessments_xls, resources_xls, statements={}):
     old_questionnaires = []
     for row in questions.iterrows():
         question = row[1]["question"].strip()
+        index_questionnaire = row[1]["index_questionnaire"]
         if question not in exclude_list:
-
             questionnaire = questionnaires[questionnaires["index"] ==
-                                row[1]["index_questionnaire"]]["title"].values[0].strip()
+                                index_questionnaire]["title"].values[0].strip()
             if questionnaire not in old_questionnaires:
                 qnum = 1
                 old_questionnaires.append(questionnaire)
@@ -2701,13 +2796,13 @@ def ingest_assessments(assessments_xls, resources_xls, statements={}):
     return statements
 
 
-def ingest_measures(measures_xls, statements={}):
+def ingest_sensors(sensors_xls, statements={}):
     """
-    Function to ingest measures spreadsheet
+    Function to ingest sensors spreadsheet
 
     Parameters
     ----------
-    measures_xls: pandas ExcelFile
+    sensors_xls: pandas ExcelFile
 
     statements:  dictionary
         key: string
@@ -2734,21 +2829,21 @@ def ingest_measures(measures_xls, statements={}):
     """
 
     # load worksheets as pandas dataframes
-    measures_classes = measures_xls.parse("Classes")
-    measures_properties = measures_xls.parse("Properties")
-    sensors = measures_xls.parse("sensors")
-    measures = measures_xls.parse("measures")
-    scales = measures_xls.parse("scales")
+    sensors_classes = sensors_xls.parse("Classes")
+    sensors_properties = sensors_xls.parse("Properties")
+    sensors = sensors_xls.parse("sensors")
+    measurands = sensors_xls.parse("measurands")
+    scales = sensors_xls.parse("scales")
 
     # fill NANs with emptyValue
-    measures_classes = measures_classes.fillna(emptyValue)
-    measures_properties = measures_properties.fillna(emptyValue)
+    sensors_classes = sensors_classes.fillna(emptyValue)
+    sensors_properties = sensors_properties.fillna(emptyValue)
     sensors = sensors.fillna(emptyValue)
-    measures = measures.fillna(emptyValue)
+    measurands = measurands.fillna(emptyValue)
     scales = scales.fillna(emptyValue)
 
     # Classes worksheet
-    for row in measures_classes.iterrows():
+    for row in sensors_classes.iterrows():
         class_iri = check_iri(row[1]["ClassName"])
         class_label = language_string(row[1]["label"])
         predicates_list = []
@@ -2780,7 +2875,7 @@ def ingest_measures(measures_xls, statements={}):
             )
 
     # Properties worksheet
-    for row in measures_properties.iterrows():
+    for row in sensors_properties.iterrows():
         property_iri = check_iri(row[1]["property"])
         property_label = language_string(row[1]["label"])
         predicates_list = []
@@ -2824,9 +2919,23 @@ def ingest_measures(measures_xls, statements={}):
             predicates_list = []
             predicates_list.append(("rdfs:label", sensor_label))
 
+            aliases = row[1]["aliases"]
+            if aliases not in exclude_list:
+                aliases = [x for x in aliases.strip().split(',') if len(x)>0]
+                for alias in aliases:
+                    if alias not in exclude_list:
+                        if isinstance(alias, str):
+                            predicates_list.append(("rdfs:label", language_string(alias)))
+
             if row[1]["definition"] not in exclude_list:
                 predicates_list.append(("rdfs:comment",
                                         language_string(row[1]["definition"])))
+            definition_link = row[1]["definition_link"]
+            if definition_link not in exclude_list:
+                predicates_list.append((":hasWebsite",
+                                        '"{0}"^^xsd:anyURI'.format(definition_link.strip())))
+
+            predicates_list.append(("rdfs:subClassOf", ":SensingDevice"))
 
             if row[1]["equivalentClasses"] not in exclude_list:
                 equivalentClasses = row[1]["equivalentClasses"]
@@ -2836,46 +2945,6 @@ def ingest_measures(measures_xls, statements={}):
                     if equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
                                                 equivalentClass))
-
-            aliases = row[1]["aliases"]
-            if aliases not in exclude_list:
-                aliases = [x for x in aliases.strip().split(',') if len(x)>0]
-                for alias in aliases:
-                    if alias not in exclude_list:
-                        if isinstance(alias, str):
-                            predicates_list.append(("rdfs:label", language_string(alias)))
-
-            indices_sensor = row[1]["indices_sensor"]
-            if indices_sensor not in exclude_list:
-                if isinstance(indices_sensor, float) or \
-                        isinstance(indices_sensor, int):
-                    indices = [np.int(indices_sensor)]
-                else:
-                    indices = [np.int(x) for x in
-                               indices_sensor.strip().split(',') if len(x)>0]
-                for index in indices:
-                    objectRDF = sensors[sensors["index"]  ==
-                                              index]["sensor"].values[0]
-                    if objectRDF not in exclude_list:
-                        predicates_list.append(("rdfs:subClassOf",
-                                                check_iri(objectRDF, 'PascalCase')))
-            else:
-                predicates_list.append(("rdfs:subClassOf", ":SensingDevice"))
-
-            indices_measure = row[1]["indices_measure"]
-            if indices_measure not in exclude_list:
-                if isinstance(indices_measure, float) or \
-                        isinstance(indices_measure, int):
-                    indices = [np.int(indices_measure)]
-                else:
-                    indices = [np.int(x) for x in
-                               indices_measure.strip().split(',') if len(x)>0]
-                for index in indices:
-                    objectRDF = measures[measures["index"] ==
-                                         index]["measure"].values[0]
-                    if isinstance(objectRDF, str):
-                        predicates_list.append((":measuresQuantityKind",
-                                                check_iri(objectRDF, 'PascalCase')))
 
             for predicates in predicates_list:
                 statements = add_to_statements(
@@ -2886,29 +2955,36 @@ def ingest_measures(measures_xls, statements={}):
                     exclude_list
                 )
 
-    # measures worksheet
-    for row in measures.iterrows():
-        measure = row[1]["measure"].strip()
-        if measure not in exclude_list:
+    # measurands worksheet
+    for row in measurands.iterrows():
+        measurand = row[1]["measurand"].strip()
+        if measurand not in exclude_list:
 
-            measure_label = language_string(measure)
-            measure_iri = check_iri(measure, 'PascalCase')
+            # measurand:
+
+            measurand_label = language_string(measurand)
+            measurand_iri = check_iri(measurand, 'PascalCase')
 
             predicates_list = []
-            predicates_list.append(("rdfs:label", measure_label))
+            predicates_list.append(("rdfs:label", measurand_label))
 
-            if row[1]["definition"] not in exclude_list:
+            if row[1]["measurand_definition"] not in exclude_list:
                 predicates_list.append(("rdfs:comment",
-                                        language_string(row[1]["definition"])))
+                                        language_string(row[1]["measurand_definition"])))
+            if row[1]["measurand_definition_link"] not in exclude_list:
+                predicates_list.append((":hasWebsite",
+                                        '"{0}"^^xsd:anyURI'.format(row[1]["measurand_definition_link"].strip())))
 
-            if row[1]["equivalentClasses"] not in exclude_list:
-                equivalentClasses = row[1]["equivalentClasses"]
-                equivalentClasses = [x.strip() for x in
-                                 equivalentClasses.strip().split(',') if len(x) > 0]
-                for equivalentClass in equivalentClasses:
-                    if equivalentClass not in exclude_list:
+            predicates_list.append(("rdfs:subClassOf", ":Measurand"))
+
+            if row[1]["measurand_equivalentClasses"] not in exclude_list:
+                measurand_equivalentClasses = row[1]["measurand_equivalentClasses"]
+                measurand_equivalentClasses = [x.strip() for x in
+                    measurand_equivalentClasses.strip().split(',') if len(x) > 0]
+                for measurand_equivalentClass in measurand_equivalentClasses:
+                    if measurand_equivalentClass not in exclude_list:
                         predicates_list.append(("rdfs:equivalentClass",
-                                                equivalentClass))
+                                                measurand_equivalentClass))
             aliases = row[1]["aliases"]
             if aliases not in exclude_list:
                 aliases = [x for x in aliases.strip().split(',') if len(x)>0]
@@ -2917,31 +2993,69 @@ def ingest_measures(measures_xls, statements={}):
                         if isinstance(alias, str):
                             predicates_list.append(("rdfs:label", language_string(alias)))
 
-            indices_measure = row[1]["indices_measure"]
-            if indices_measure not in exclude_list:
-                if isinstance(indices_measure, float) or \
-                        isinstance(indices_measure, int):
-                    indices = [np.int(indices_measure)]
-                else:
-                    indices = [np.int(x) for x in
-                               indices_measure.strip().split(',') if len(x)>0]
-                for index in indices:
-                    objectRDF = measures[measures["index"] ==
-                                         index]["measure"].values[0]
-                    if isinstance(objectRDF, str):
-                        predicates_list.append(("rdfs:subClassOf",
-                                                check_iri(objectRDF, 'PascalCase')))
-            else:
-                predicates_list.append(("rdfs:subClassOf", ":QuantityKind"))
-
             for predicates in predicates_list:
                 statements = add_to_statements(
-                    measure_iri,
+                    measurand_iri,
                     predicates[0],
                     predicates[1],
                     statements,
                     exclude_list
                 )
+
+            # sensor_type:
+
+            sensor_type = row[1]["sensor_type"].strip()
+            sensor_type_label = language_string(sensor_type)
+            sensor_type_iri = check_iri(sensor_type, 'PascalCase')
+
+            sensor_type_predicates_list = []
+            sensor_type_predicates_list.append(("rdfs:label", sensor_type_label))
+
+            if row[1]["sensor_type_definition"] not in exclude_list:
+                sensor_type_predicates_list.append(("rdfs:comment",
+                    language_string(row[1]["sensor_type_definition"])))
+            if row[1]["sensor_type_definition_link"] not in exclude_list:
+                sensor_type_predicates_list.append((":hasWebsite",
+                    '"{0}"^^xsd:anyURI'.format(row[1]["sensor_type_definition_link"].strip())))
+
+            predicates_list.append(("rdfs:subClassOf", ":SensingDevice"))
+
+            if row[1]["sensor_type_equivalentClasses"] not in exclude_list:
+                sensor_type_equivalentClasses = row[1]["sensor_type_equivalentClasses"]
+                sensor_type_equivalentClasses = [x.strip() for x in
+                    sensor_type_equivalentClasses.strip().split(',') if len(x) > 0]
+                for sensor_type_equivalentClass in sensor_type_equivalentClasses:
+                    if sensor_type_equivalentClass not in exclude_list:
+                        sensor_type_predicates_list.append(("rdfs:equivalentClass",
+                            sensor_type_equivalentClass))
+
+            for sensor_type_predicates in sensor_type_predicates_list:
+                statements = add_to_statements(
+                    sensor_type_iri,
+                    sensor_type_predicates[0],
+                    sensor_type_predicates[1],
+                    statements,
+                    exclude_list
+                )
+
+            indices_sensor = row[1]["indices_sensor"]
+            if indices_sensor not in exclude_list:
+                if isinstance(indices_sensor, float) or \
+                        isinstance(indices_sensor, int):
+                    indices = [np.int(indices_sensor)]
+                else:
+                    indices = [np.int(x) for x in
+                               indices_sensor.strip().split(',') if len(x)>0]
+                for index in indices:
+                    objectRDF = sensors[sensors["index"] == index]["sensor"].values[0]
+                    if isinstance(objectRDF, str):
+                        statements = add_to_statements(
+                            check_iri(objectRDF, 'PascalCase'),
+                            "rdfs:subClassOf",
+                            sensor_type_iri,
+                            statements,
+                            exclude_list
+                    )
 
     # scales worksheet
     for row in scales.iterrows():

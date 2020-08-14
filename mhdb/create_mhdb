@@ -22,7 +22,7 @@ The Mental Health Database (mhdb) includes the following modules:
   - mhdb-disorders: Mental health disorders
   - mhdb-resources: Mental health resources
   - mhdb-assessments: Mental health assessments
-  - mhdb-measures: Physical measures and sensors
+  - mhdb-sensors: Physical measurands and sensors
 
 License: Creative Commons Attribution 4.0 International (CC BY): 
 License link: https://creativecommons.org/licenses/by/4.0/
@@ -37,7 +37,7 @@ states_title = "mhdb-states: Mental states (categories of mental phenomena)"
 disorders_title = "mhdb-disorders: Mental health disorders, signs, and symptoms"
 resources_title = "mhdb-resources: Mental health resources (guides, therapies, and projects)"
 assessments_title = "mhdb-assessments: Mental health assessments (questions and cognitive tasks)"
-measures_title = "mhdb-measures: Physical measures and sensors"
+sensors_title = "mhdb-sensors: Physical measurands and sensors"
 ddashes = "================================================================================"
 
 header_states="\n\n{0}\n\t\t{1}\n{0}\n{2}\n{0}\n".format(
@@ -48,8 +48,8 @@ header_resources="\n\n{0}\n{1}\n{0}\n{2}\n{0}\n".format(
     ddashes, resources_title, header_comment)
 header_assessments="\n\n{0}\n{1}\n{0}\n{2}\n{0}\n".format(
     ddashes, assessments_title, header_comment)
-header_measures="\n\n{0}\n\t\t{1}\n{0}\n{2}\n{0}\n".format(
-    ddashes, measures_title, header_comment)
+header_sensors="\n\n{0}\n\t\t{1}\n{0}\n{2}\n{0}\n".format(
+    ddashes, sensors_title, header_comment)
 
 import os
 import sys
@@ -72,19 +72,19 @@ except:
 import numpy as np
 import pandas as pd
 
-run_all = 1
+run_all = 0
 if run_all:
     do_states = 0
     do_disorders = 1
     do_resources = 1
     do_assessments = 1
-    do_measures = 1
+    do_sensors = 1
 else:
     do_states = 0
     do_disorders = 0
-    do_resources = 1
+    do_resources = 0
     do_assessments = 0
-    do_measures = 0
+    do_sensors = 1
 
 
 def main():
@@ -94,39 +94,39 @@ def main():
     # ------------------------------------------------------------------------------
     try:
         statesFILE = download_google_sheet(
-            '../input/mhdb-states.xlsx',
+            '../input/states.xlsx',
             "11OkIWLwZYi9xkpuFODAKXQZHEFeMvYCQ8BTfIBKm0Z8"
         )
     except:
-        statesFILE = '../input/mhdb-states.xlsx'
+        statesFILE = '../input/states.xlsx'
     try:
         disordersFILE = download_google_sheet(
-            '../input/mhdb-disorders.xlsx',
+            '../input/disorders.xlsx',
             "13a0w3ouXq5sFCa0fBsg9xhWx67RGJJJqLjD_Oy1c3b0"
         )
     except:
         disordersFILE = '../input/disorders.xlsx'
     try:
         resourcesFILE = download_google_sheet(
-            '../input/mhdb-resources.xlsx',
+            '../input/resources.xlsx',
             "1LeLlrsvBWMYTTIXTVtkynmBzzb0Uzi1OwpRLfyRAwzM"
         )
     except:
-        resourcesFILE = '../input/mhdb-resources.xlsx'
+        resourcesFILE = '../input/resources.xlsx'
     try:
         assessmentsFILE = download_google_sheet(
-            '../input/mhdb-assessments.xlsx',
+            '../input/assessments.xlsx',
             "1VUf3XnieYThY8OA6JWtpNP4zI2xa9xak9LXuyH_PaoE"
         )
     except:
-        assessmentsFILE = '../input/mhdb-assessments.xlsx'
+        assessmentsFILE = '../input/assessments.xlsx'
     try:
-        measuresFILE = download_google_sheet(
-            '../input/mhdb-measures.xlsx',
+        sensorsFILE = download_google_sheet(
+            '../input/sensors.xlsx',
             "1ELaw79zmtmjmrg3J7slyoP-HXdfQRWa1Aqnbp50cmj8"
         )
     except:
-        measuresFILE = '../input/mhdb-measures.xlsx'
+        sensorsFILE = '../input/sensors.xlsx'
 
 
     # --------------------------------------------------------------------------
@@ -140,8 +140,8 @@ def main():
     resources_outfile = os.path.join('../output', 'mhdb-resources.ttl')
     assessments_xls = pd.ExcelFile(assessmentsFILE)
     assessments_outfile = os.path.join('../output', 'mhdb-assessments.ttl')
-    measures_xls = pd.ExcelFile(measuresFILE)
-    measures_outfile = os.path.join('../output', 'mhdb-measures.ttl')
+    sensors_xls = pd.ExcelFile(sensorsFILE)
+    sensors_outfile = os.path.join('../output', 'mhdb-sensors.ttl')
 
 
     # --------------------------------------------------------------------------
@@ -163,7 +163,7 @@ def main():
 
     if do_resources:
         resources_statements = ingest_resources(resources_xls,
-                                              states_xls, measures_xls,
+                                              states_xls, sensors_xls,
                                               statements={})
         resources_turtle = turtle_from_dict(resources_statements)
     else:
@@ -172,18 +172,18 @@ def main():
 
     if do_assessments:
         assessments_statements = ingest_assessments(assessments_xls,
-            resources_xls, statements={})
+            resources_xls, disorders_xls, statements={})
         assessments_turtle = turtle_from_dict(assessments_statements)
     else:
         assessments_statements = []
         assessments_turtle = []
 
-    if do_measures:
-        measures_statements = ingest_measures(measures_xls, statements={})
-        measures_turtle = turtle_from_dict(measures_statements)
+    if do_sensors:
+        sensors_statements = ingest_sensors(sensors_xls, statements={})
+        sensors_turtle = turtle_from_dict(sensors_statements)
     else:
-        measures_statements = []
-        measures_turtle = []
+        sensors_statements = []
+        sensors_turtle = []
 
     # --------------------------------------------------------------------------
     # Write header and statements to turtle files
@@ -195,7 +195,7 @@ def main():
                     [disorders_statements, disorders_outfile, disorders_turtle],
                     [resources_statements, resources_outfile, resources_turtle],
                     [assessments_statements, assessments_outfile, assessments_turtle],
-                    [measures_statements, measures_outfile, measures_turtle]]
+                    [sensors_statements, sensors_outfile, sensors_turtle]]
 
     for ioutput, output_list in enumerate(outputs_list):
 
@@ -236,7 +236,7 @@ def main():
                                 row[1]["Prefix"] not in ["mhdb-disorders",
                                                          "mhdb-resources",
                                                          "mhdb-assessments",
-                                                         "mhdb-measures"
+                                                         "mhdb-sensors"
                                                          ]]
                 header_string = write_header(
                     "{0}/{1}".format(base_uri, module),
@@ -258,7 +258,7 @@ def main():
                                 row[1]["Prefix"] not in ["mhdb-states",
                                                          "mhdb-resources",
                                                          "mhdb-assessments",
-                                                         "mhdb-measures"
+                                                         "mhdb-sensors"
                                                          ]]
                 header_string = write_header(
                     "{0}/{1}".format(base_uri, module),
@@ -300,7 +300,7 @@ def main():
                 ).iterrows() if row[1]["Prefix"] in import_prefixes and
                                 row[1]["Prefix"] not in ["mhdb-states",
                                                          "mhdb-disorders",
-                                                         "mhdb-measures"
+                                                         "mhdb-sensors"
                                                          ]]
                 header_string = write_header(
                     "{0}/{1}".format(base_uri, module),
@@ -311,7 +311,7 @@ def main():
                     prefixes=prefixes
                 )
             if ioutput == 4:
-                module = "mhdb-measures"
+                module = "mhdb-sensors"
                 prefixes = [(
                     row[1]["Prefix"],
                     row[1]["PrefixURI"],
@@ -329,7 +329,7 @@ def main():
                     module,
                     version,
                     module,
-                    header_measures,
+                    header_sensors,
                     prefixes=prefixes
                 )
 
