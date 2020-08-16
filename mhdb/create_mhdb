@@ -82,9 +82,9 @@ if run_all:
 else:
     do_states = 0
     do_disorders = 0
-    do_resources = 0
+    do_resources = 1
     do_assessments = 0
-    do_sensors = 1
+    do_sensors = 0
 
 
 def main():
@@ -163,7 +163,7 @@ def main():
 
     if do_resources:
         resources_statements = ingest_resources(resources_xls,
-                                              states_xls, sensors_xls,
+                                              sensors_xls, disorders_xls, states_xls,
                                               statements={})
         resources_turtle = turtle_from_dict(resources_statements)
     else:
